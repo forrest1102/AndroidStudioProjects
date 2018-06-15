@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">P2P Messaging</string>
+    <string name="send_message_hint">Enter Message </string>
+    <string name="connection_status">Connection Status</string>
+    <string name="wifi_button">WiFi</string>
+    <string name="bluetooth_button">Bluetooth</string>
+    <string name="discover_button">Discover</string>
+    <string name="role">Role</string>
+    <string name="connected_to">"Who are you connected to?</string>
+
+</resources>
