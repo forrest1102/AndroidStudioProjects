@@ -7,15 +7,6 @@
     tools:context=".MainActivity"
     tools:layout_editor_absoluteY="81dp">
 
-    <!-- Created by Sarthi Technology-->
-    <!-- www.youtube.com/SarthiTechnology-->
-    <!-- www.facebook.com/SarthiTechnology-->
-
-    <!-- My Dear Friends, Thanks for your kind support for my youtube channel.-->
-
-    <!-- Please make sure that you are using Relative Layout for below codes-->
-
-
     <TextView
         android:id="@+id/connectionStatus"
         android:layout_width="0dp"
@@ -84,16 +75,18 @@
 
     <EditText
         android:id="@+id/writeMsg"
-        android:layout_width="280dp"
+        android:layout_width="267dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_toStartOf="@+id/sendButton"
         android:ems="10"
         android:hint="@string/send_message_hint"
         android:inputType="textPersonName"
         app:layout_constraintBaseline_toBaselineOf="@+id/sendButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/sendButton" />
 
     <Button
@@ -103,11 +96,12 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="8dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Send"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/messageChatRecyclerView"
-        tools:layout_editor_absoluteX="8dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/messageChatRecyclerView" />
 
     <TextView
         android:id="@+id/connectedTo"

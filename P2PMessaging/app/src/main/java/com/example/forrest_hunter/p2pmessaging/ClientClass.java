@@ -11,10 +11,13 @@ public class ClientClass extends Thread {
 
     Socket socket;
     String hostAdd;
+    SendReceive sendReceive;
 
-    public ClientClass(InetAddress hostAddress){
+    public ClientClass(InetAddress hostAddress, SendReceive sendReceive){
         hostAdd = hostAddress.getHostAddress();
         socket = new Socket();
+        this.sendReceive = new SendReceive(socket);
+        sendReceive.start();
     }
 
     @Override

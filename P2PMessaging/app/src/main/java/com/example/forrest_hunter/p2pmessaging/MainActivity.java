@@ -10,10 +10,15 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     TextView connStats;
     TextView connectedTo;
     EditText writeMsg;
-    //RecyclerView viewMsg;
+    RecyclerView viewMsg;
 
     WifiManager wifiManager;
     BluetoothManager bluetoothManager;
@@ -47,6 +52,15 @@ public class MainActivity extends AppCompatActivity {
     List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     String[] deviceNameArray;
     WifiP2pDevice[] deviceArray;
+
+    ServerClass serverClass;
+    ClientClass clientClass;
+    SendReceive sendReceive;
+
+    static final int MESSAGE_READ = 1;
+
+    TextMsg adapter;
+
 
 
 
@@ -65,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         btnSend = (Button) findViewById(R.id.sendButton);
 
         listView = (ListView) findViewById(R.id.peerListView);
-        //viewMsg = (RecyclerView) findViewById(R.id.messageChatRecyclerView);
+        viewMsg = (RecyclerView) findViewById(R.id.messageChatRecyclerView);
 
         connStats = (TextView) findViewById(R.id.connectionStatus);
         connectedTo = (TextView) findViewById(R.id.connectedTo);
@@ -123,8 +137,13 @@ public class MainActivity extends AppCompatActivity {
 
             if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner){
                 connStats.setText("Host");
+                serverClass = new ServerClass();
+                serverClass.start();
+
             } else if(wifiP2pInfo.groupFormed){
                 connStats.setText("Client");
+                clientClass = new ClientClass(groupOwnerAddress, sendReceive);
+                clientClass.start();
             }
         }
     };
@@ -142,6 +161,20 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(mReceiver);
 
     }
+
+    Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                case MESSAGE_READ:
+                    byte[] readBuffer = (byte[]) msg.obj;
+                    String tempMsg = new String (readBuffer, 0, msg.arg1);
+                    //viewMsg.setTe
+                    break;
+            }
+            return true;
+        }
+    });
 
     private void exqListener(){
         wifiBtn.setOnClickListener(new View.OnClickListener() {
