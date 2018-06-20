@@ -10,6 +10,8 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     TextView connectedTo;
     EditText writeMsg;
     //RecyclerView viewMsg;
+    ListView viewMsg;
 
     WifiManager wifiManager;
     BluetoothManager bluetoothManager;
@@ -48,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
     String[] deviceNameArray;
     WifiP2pDevice[] deviceArray;
 
+    List<String> runningChat = new ArrayList<String>();
+    String chatMessage;
+    ArrayAdapter<String> adapter;
+
+    Handler mHandler;
+
+    ClientClass clientClass;
+    ServerClass serverClass;
+    SendReceive sendReceive;
+
 
 
     @Override
@@ -56,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initialWork();
         exqListener();
+        setActivityHandler();
     }
 
     private void initialWork() {
@@ -66,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
         listView = (ListView) findViewById(R.id.peerListView);
         //viewMsg = (RecyclerView) findViewById(R.id.messageChatRecyclerView);
+        viewMsg = (ListView) findViewById(R.id.messageListView);
 
         connStats = (TextView) findViewById(R.id.connectionStatus);
         connectedTo = (TextView) findViewById(R.id.connectedTo);
@@ -73,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         writeMsg = (EditText) findViewById(R.id.writeMsg);
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        //bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 
@@ -87,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, runningChat);
     }
 
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
@@ -123,8 +140,12 @@ public class MainActivity extends AppCompatActivity {
 
             if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner){
                 connStats.setText("Host");
+                serverClass = new ServerClass(mHandler);
+                serverClass.start();
             } else if(wifiP2pInfo.groupFormed){
                 connStats.setText("Client");
+                clientClass = new ClientClass(groupOwnerAddress, mHandler);
+                clientClass.start();
             }
         }
     };
@@ -157,20 +178,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        /*btBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(bluetoothManager.){
-                    wifiManager.setWifiEnabled(false);
-                    btBtn.setText("BLUETOOTH OFF");
-                } else{
-                    wifiManager.setWifiEnabled((true));
-                    btBtn.setText("BLUETOOTH ON");
-
-                }
-            }
-        });*/
 
         btnDiscover.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -208,8 +215,30 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-
         });
 
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String msg = writeMsg.getText().toString();
+                sendReceive.write(msg.getBytes());
+            }
+        });
     }
+
+    private void setActivityHandler(){
+        mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message message) {
+                switch (message.what){
+                    case Strings.MESSAGE_READ:
+                        byte[]readBuffer = (byte[]) message.obj;
+                        chatMessage = new String(readBuffer, 0, message.arg1);
+                        adapter.add(chatMessage);
+                }
+                return true;
+            }
+        });
+    }
+
 }
