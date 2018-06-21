@@ -1,10 +1,10 @@
 package com.example.forrest_hunter.p2pmessaging;
 
-import android.os.Handler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.logging.Handler;
 
 public class SendReceive extends Thread {
     private Socket socket;
@@ -33,7 +33,7 @@ public class SendReceive extends Thread {
             try {
                 bytes = inputStream.read(buffer);
                 if(bytes > 0){
-                    handler.obtainMessage(Strings.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                    handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -42,10 +42,6 @@ public class SendReceive extends Thread {
     }
 
     public void write(byte[] bytes){
-        try {
-            outputStream.write(bytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 }
