@@ -32,7 +32,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     Button wifiBtn, btBtn, btnDiscover, btnSend;
-    ListView listView;
+    ListView peerListView;
+    ListView messageChatView;
     TextView connStats;
     TextView connectedTo;
     EditText writeMsg;
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     String[] deviceNameArray;
     WifiP2pDevice[] deviceArray;
+
+    List<String> messageChat = new ArrayList<String>();
 
     ServerClass serverClass;
     ClientClass clientClass;
@@ -76,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
         btnDiscover = (Button) findViewById(R.id.discoverPeers);
         btnSend = (Button) findViewById(R.id.sendButton);
 
-        listView = (ListView) findViewById(R.id.peerListView);
+        peerListView = (ListView) findViewById(R.id.peerListView);
+        messageChatView = (ListView) findViewById(R.id.messageChatView);
         //viewMsg = (RecyclerView) findViewById(R.id.messageChatRecyclerView);
 
         connStats = (TextView) findViewById(R.id.connectionStatus);
@@ -119,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, deviceNameArray);
-                listView.setAdapter(adapter);
+                peerListView.setAdapter(adapter);
             }
 
             if(peers.size() == 0){
@@ -202,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        peerListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 final WifiP2pDevice device = deviceArray[i];
@@ -228,7 +232,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String message = writeMsg.getText().toString();
-                sendReceive.write(message.getBytes());
+                if (sendReceive != null)
+                    sendReceive.write(message.getBytes());
             }
         });
 
@@ -241,7 +246,9 @@ public class MainActivity extends AppCompatActivity {
                 case Strings.MESSAGE_READ:
                     byte[] readBuffer = (byte[]) msg.obj;
                     String tempMessage = new String(readBuffer, 0, msg.arg1);
-                    //set text in list view here!
+                    messageChat.add(tempMessage);
+                    ArrayAdapter<String> messageChatAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, messageChat);
+                    messageChatView.setAdapter(messageChatAdapter);
                     break;
             }
             return true;

@@ -43,6 +43,10 @@ public class SendReceive extends Thread {
     }
 
     public void write(byte[] bytes){
-
+        try {
+            outputStream.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
