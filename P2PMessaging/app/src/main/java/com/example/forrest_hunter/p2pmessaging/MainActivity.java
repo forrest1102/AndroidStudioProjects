@@ -10,9 +10,10 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,6 +23,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
     String[] deviceNameArray;
     WifiP2pDevice[] deviceArray;
 
+    ServerClass serverClass;
+    ClientClass clientClass;
+    SendReceive sendReceive;
+
 
 
     @Override
@@ -55,9 +61,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initialWork();
+
+        if(wifiManager.isWifiEnabled()){
+            wifiBtn.setText("WIFI ON");
+        }
+
         exqListener();
     }
 
+    //Set up all the various buttons and listViews in the GUI
     private void initialWork() {
         wifiBtn = (Button) findViewById(R.id.wifiOnOff);
         btBtn = (Button) findViewById(R.id.btOnOff);
@@ -123,8 +135,12 @@ public class MainActivity extends AppCompatActivity {
 
             if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner){
                 connStats.setText("Host");
+                serverClass = new ServerClass(mHandler);
+                serverClass.start();
             } else if(wifiP2pInfo.groupFormed){
                 connStats.setText("Client");
+                clientClass = new ClientClass(groupOwnerAddress, mHandler);
+                clientClass.start();
             }
         }
     };
@@ -143,6 +159,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStop(){
+        super.onStop();
+        try {
+            clientClass.socket.close();
+            serverClass.serverSocket.close();
+            sendReceive.socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void exqListener(){
         wifiBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,24 +181,9 @@ public class MainActivity extends AppCompatActivity {
                 } else{
                     wifiManager.setWifiEnabled((true));
                     wifiBtn.setText("WIFI ON");
-
                 }
             }
         });
-
-        /*btBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(bluetoothManager.){
-                    wifiManager.setWifiEnabled(false);
-                    btBtn.setText("BLUETOOTH OFF");
-                } else{
-                    wifiManager.setWifiEnabled((true));
-                    btBtn.setText("BLUETOOTH ON");
-
-                }
-            }
-        });*/
 
         btnDiscover.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -211,5 +224,28 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String message = writeMsg.getText().toString();
+                sendReceive.write(message.getBytes());
+            }
+        });
+
     }
+
+    Handler mHandler = new Handler(new Handler.Callback(){
+        @Override
+        public boolean handleMessage(Message msg){
+            switch(msg.what){
+                case Strings.MESSAGE_READ:
+                    byte[] readBuffer = (byte[]) msg.obj;
+                    String tempMessage = new String(readBuffer, 0, msg.arg1);
+                    //set text in list view here!
+                    break;
+            }
+            return true;
+        }
+    });
+
 }
